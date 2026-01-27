@@ -1,0 +1,31 @@
+{
+  "name": "resume-ai",
+  "private": true,
+  "version": "0.0.1",
+  "packageManager": "pnpm@10.28.1",
+  "scripts": {
+    "dev:web": "pnpm -C apps/web dev",
+    "build:web": "pnpm -C apps/web build",
+    "lint:web": "pnpm -C apps/web lint",
+    "typecheck:web": "pnpm -C apps/web typecheck",
+    "build:shared": "pnpm -C packages/shared build",
+    "build:ui": "pnpm -C packages/ui build",
+    "storybook:ui": "pnpm -C packages/ui storybook",
+    "build-storybook:ui": "pnpm -C packages/ui build-storybook",
+    "build:packages": "pnpm build:shared && pnpm build:ui",
+    "build:all": "pnpm build:packages && pnpm build:web",
+    "check:web": "pnpm lint:web && pnpm typecheck:web && pnpm build:web",
+    "check:all": "pnpm build:packages && pnpm check:web && pnpm build-storybook:ui",
+    "dev": "pnpm dev:web",
+    "build": "pnpm build:all",
+    "check": "pnpm check:all"
+  },
+  "devDependencies": {
+    "@vitest/browser-playwright": "^4.0.18",
+    "@vitest/coverage-v8": "^4.0.18",
+    "concurrently": "^9.2.1",
+    "playwright": "^1.58.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
