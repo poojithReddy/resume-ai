@@ -1,0 +1,9 @@
+[project]
+name = "resume-ai-api"
+version = "0.1.0"
+description = "Backend API for Resume AI"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn>=0.27",
+]
