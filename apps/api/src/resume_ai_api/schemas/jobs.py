@@ -8,3 +8,8 @@ class CreateJobRequest(BaseModel):
 
 class CreateJobResponse(BaseModel):
     job_id: str
+
+class JobDetailResponse(BaseModel):
+    job_id: str
+    resume_text: str
+    job_description_text: str

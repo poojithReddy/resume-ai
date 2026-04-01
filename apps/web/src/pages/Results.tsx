@@ -1,82 +1,77 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useState } from "react";
-import { demoJobRunResult } from "@resume-ai/shared";
-import type { CandidateResult } from "@resume-ai/shared";
-import { CandidateDetailDrawer } from "@resume-ai/ui";
+
+import { getJob, type JobDetailResponse } from "../lib/api";
+
 export default function Results() {
   const { jobId } = useParams<{ jobId: string }>();
-  const [selected, setSelected] = useState<CandidateResult | null>(null);
-  // For now: only demo job supported
-  const data = jobId === "demo-job-1" ? demoJobRunResult : null;
+  const [job, setJob] = useState<JobDetailResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  if (!data) {
+  useEffect(() => {
+    async function loadJob() {
+      if (!jobId) {
+        setErrorMessage("Missing job id");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const result = await getJob(jobId);
+        setJob(result);
+      } catch {
+        setErrorMessage(`No results found for jobId: ${jobId}`);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadJob();
+  }, [jobId]);
+
+  if (isLoading) {
     return (
-      <div>
-        <h1 className="text-2xl font-bold">Results</h1>
-        <p className="mt-2 text-red-600">
-          No results found for jobId: <span className="font-mono">{jobId}</span>
-        </p>
+      <div className="space-y-6">
+        <div className="border rounded-lg p-6 bg-white">
+          <h1 className="text-2xl font-bold">Results</h1>
+          <p className="mt-2 text-gray-600">Loading results...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorMessage || !job) {
+    return (
+      <div className="space-y-6">
+        <div className="border rounded-lg p-6 bg-white">
+          <h1 className="text-2xl font-bold">Results</h1>
+          <p className="mt-2 text-red-600">{errorMessage}</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
+      <section className="border rounded-lg p-6 bg-white">
         <h1 className="text-2xl font-bold">Results</h1>
-        <p className="text-gray-600 mt-1">
-          Job ID: <span className="font-mono">{data.jobId}</span>
+        <p className="text-gray-600 mt-2">
+          Job ID: <span className="font-mono">{job.job_id}</span>
         </p>
-      </div>
+      </section>
 
-      <div className="border rounded p-4">
-        <div className="flex gap-6 flex-wrap">
-          <div>
-            <div className="text-sm text-gray-600">Total resumes</div>
-            <div className="text-xl font-semibold">{data.summary.total}</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-600">Top score</div>
-            <div className="text-xl font-semibold">{data.summary.topScore}</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-600">Average score</div>
-            <div className="text-xl font-semibold">{data.summary.avgScore}</div>
-          </div>
+      <section className="border rounded-lg p-6 bg-white space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold">Resume text</h2>
+          <p className="text-gray-700 mt-2">{job.resume_text}</p>
         </div>
-      </div>
 
-      <div className="border rounded overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="border-b bg-gray-50">
-            <tr>
-              <th className="p-3">Candidate</th>
-              <th className="p-3">Score</th>
-              <th className="p-3">Matched</th>
-              <th className="p-3">Missing</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.results.map((r) => (
-              <tr
-                    key={r.candidateId}
-                    className="border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => setSelected(r)}
-                  >
-                <td className="p-3 font-medium">{r.fileName}</td>
-                <td className="p-3">{r.score}</td>
-                <td className="p-3">{r.matched.join(", ")}</td>
-                <td className="p-3">{r.missing.join(", ")}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <CandidateDetailDrawer
-        open={selected !== null}
-        candidate={selected}
-        onClose={() => setSelected(null)}
-      />
+        <div>
+          <h2 className="text-lg font-semibold">Job description</h2>
+          <p className="text-gray-700 mt-2">{job.job_description_text}</p>
+        </div>
+      </section>
     </div>
   );
 }
