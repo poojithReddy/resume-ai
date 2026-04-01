@@ -1,12 +1,19 @@
-import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, Button } from "@resume-ai/ui";
+
+import { createJob } from "../lib/api";
 
 export default function Demo() {
   const navigate = useNavigate();
 
-  // keep it stable; if you later want, you can generate a random id
-  const jobId = useMemo(() => "demo-job-1", []);
+  async function handleRunDemo() {
+    const result = await createJob({
+      resume_text: "Demo resume text",
+      job_description_text: "Demo job description text",
+    });
+
+    navigate(`/results/${result.job_id}`);
+  }
 
   return (
     <div className="min-h-[calc(100vh-64px)]">
@@ -38,16 +45,16 @@ export default function Demo() {
           <div className="space-y-1">
             <div className="font-semibold">Run the sample job</div>
             <div className="text-sm text-gray-600">
-              Opens results for <span className="font-mono text-gray-800">{jobId}</span>
+              This will create a real job via backend
             </div>
           </div>
 
           <div className="flex gap-3">
             <Button
               variant="primary"
-              onClick={() => navigate(`/results/${jobId}`)}
+              onClick={handleRunDemo}
             >
-              Open demo results
+              Run demo
             </Button>
 
             <Button
@@ -59,10 +66,8 @@ export default function Demo() {
           </div>
         </Card>
 
-        {/* Optional: small note */}
         <div className="text-xs text-gray-500">
-          Tip: once backend is ready, this page becomes “Start a run” and triggers an API call
-          instead of navigating directly.
+          Now this actually creates a job in the backend instead of using mock data.
         </div>
       </div>
     </div>
