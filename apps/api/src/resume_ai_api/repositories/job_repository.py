@@ -7,9 +7,18 @@ class JobRepository:
     def __init__(self, db_session: Session) -> None:
         self._db_session = db_session
 
-    def create_job(self, job_id: str, resume_text: str, job_description_text: str) -> Job:
+    def create_job(
+        self,
+        job_id: str,
+        job_title: str,
+        resume_text: str,
+        job_description_text: str,
+        status: str = "pending",
+    ) -> Job:
         job = Job(
             job_id=job_id,
+            job_title=job_title,
+            status=status,
             resume_text=resume_text,
             job_description_text=job_description_text,
         )

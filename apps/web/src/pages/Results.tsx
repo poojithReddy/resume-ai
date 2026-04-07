@@ -3,6 +3,10 @@ import { useParams } from "react-router-dom";
 
 import { getJob, type JobDetailResponse } from "../lib/api";
 
+function formatDate(value: string) {
+  return new Date(value).toLocaleString();
+}
+
 export default function Results() {
   const { jobId } = useParams<{ jobId: string }>();
   const [job, setJob] = useState<JobDetailResponse | null>(null);
@@ -54,14 +58,33 @@ export default function Results() {
 
   return (
     <div className="space-y-6">
-      <section className="border rounded-lg p-6 bg-white">
+      <div className="border rounded-lg p-6 bg-white">
         <h1 className="text-2xl font-bold">Results</h1>
         <p className="text-gray-600 mt-2">
           Job ID: <span className="font-mono">{job.job_id}</span>
         </p>
-      </section>
+      </div>
 
-      <section className="border rounded-lg p-6 bg-white space-y-6">
+      <div className="border rounded-lg p-6 bg-white">
+        <div className="grid gap-6 sm:grid-cols-3">
+          <div>
+            <div className="text-sm text-gray-600">Job title</div>
+            <div className="text-base font-medium mt-1">{job.job_title}</div>
+          </div>
+
+          <div>
+            <div className="text-sm text-gray-600">Status</div>
+            <div className="text-base font-medium mt-1 capitalize">{job.status}</div>
+          </div>
+
+          <div>
+            <div className="text-sm text-gray-600">Created</div>
+            <div className="text-base font-medium mt-1">{formatDate(job.created_at)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="border rounded-lg p-6 bg-white space-y-6">
         <div>
           <h2 className="text-lg font-semibold">Resume text</h2>
           <p className="text-gray-700 mt-2">{job.resume_text}</p>
@@ -71,7 +94,7 @@ export default function Results() {
           <h2 className="text-lg font-semibold">Job description</h2>
           <p className="text-gray-700 mt-2">{job.job_description_text}</p>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

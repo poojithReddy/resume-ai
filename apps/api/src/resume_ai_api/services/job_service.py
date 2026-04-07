@@ -8,13 +8,20 @@ class JobService:
     def __init__(self, job_repository: JobRepository) -> None:
         self._job_repository = job_repository
 
-    def create_job(self, resume_text: str, job_description_text: str) -> str:
+    def create_job(
+        self,
+        job_title: str,
+        resume_text: str,
+        job_description_text: str,
+    ) -> str:
         job_id = f"job-{uuid4()}"
 
         self._job_repository.create_job(
             job_id=job_id,
+            job_title=job_title,
             resume_text=resume_text,
             job_description_text=job_description_text,
+            status="pending",
         )
 
         return job_id
