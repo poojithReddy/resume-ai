@@ -7,13 +7,14 @@ export default function Demo() {
   const navigate = useNavigate();
 
   async function handleRunDemo() {
-    const result = await createJob({
-      resume_text: "Demo resume text",
-      job_description_text: "Demo job description text",
-    });
+  const result = await createJob({
+    job_title: "Demo Full Stack Role",
+    resume_text: "Demo resume text",
+    job_description_text: "Demo job description",
+  });
 
-    navigate(`/results/${result.job_id}`);
-  }
+  navigate(`/results/${result.job_id}`);
+}
 
   return (
     <div className="min-h-[calc(100vh-64px)]">

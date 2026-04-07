@@ -17,6 +17,7 @@ def create_job(
     job_service: JobService = Depends(get_job_service),
 ) -> CreateJobResponse:
     job_id = job_service.create_job(
+        job_title=payload.job_title,
         resume_text=payload.resume_text,
         job_description_text=payload.job_description_text,
     )
@@ -32,6 +33,9 @@ def get_job(
 
     return JobDetailResponse(
         job_id=job.job_id,
+        job_title=job.job_title,
+        status=job.status,
         resume_text=job.resume_text,
         job_description_text=job.job_description_text,
+        created_at=job.created_at,
     )

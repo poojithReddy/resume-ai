@@ -11,11 +11,10 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="border rounded-lg p-6 bg-white">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="text-gray-600 mt-2">
-          Upload a job description and resumes to get a match score + evidence.
+          Start a demo run now. Upload and real AI scoring will be added next.
         </p>
 
         <div className="mt-5 flex flex-wrap gap-3">
@@ -23,7 +22,7 @@ export default function Dashboard() {
             className="border rounded px-4 py-2 bg-gray-900 text-white"
             onClick={() => navigate("/demo")}
           >
-            Try Demo Mode
+            Start Demo Run
           </button>
 
           <button
@@ -35,40 +34,37 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Coming soon: upload */}
-      <section className="border rounded-lg p-6 bg-white">
+      <div className="border rounded-lg p-6 bg-white">
         <h2 className="text-lg font-semibold">New Analysis</h2>
         <p className="text-gray-600 mt-1">
-          Next, we’ll build the upload form here (job requirements + multiple resumes).
+          Next, we’ll build the upload form here for job details and multiple resumes.
         </p>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div className="border rounded p-4">
-            <div className="font-medium">Job description</div>
+            <div className="font-medium">Job details</div>
             <div className="text-sm text-gray-600 mt-1">
-              Paste text or upload a file (later).
+              Add a job title and paste the job description.
             </div>
           </div>
 
           <div className="border rounded p-4">
             <div className="font-medium">Resumes</div>
             <div className="text-sm text-gray-600 mt-1">
-              Upload multiple resumes; we’ll score each one.
+              Upload multiple resumes and score them against the role.
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Recent runs */}
-      <section className="space-y-3">
+      <div className="space-y-3">
         <div className="flex items-end justify-between">
-          <h2 className="text-lg font-semibold">Recent runs</h2>
-          <button
-            className="text-sm underline"
-            onClick={() => navigate("/results/demo-job-1")}
-          >
-            View latest
-          </button>
+          <div>
+            <h2 className="text-lg font-semibold">Recent runs</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Demo history for now. Real saved runs from the backend come next.
+            </p>
+          </div>
         </div>
 
         <div className="border rounded-lg overflow-hidden bg-white">
@@ -82,22 +78,24 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {demoRuns.map((r) => (
+              {demoRuns.map((run) => (
                 <tr
-                  key={r.jobId}
+                  key={run.jobId}
                   className="border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => navigate(`/results/${r.jobId}`)}
+                  onClick={() => navigate(`/results/${run.jobId}`)}
                 >
-                  <td className="p-3 font-medium">{r.jobTitle}</td>
-                  <td className="p-3 text-sm text-gray-600">{formatDate(r.createdAt)}</td>
-                  <td className="p-3">{r.totalResumes}</td>
-                  <td className="p-3">{r.topScore}</td>
+                  <td className="p-3 font-medium">{run.jobTitle}</td>
+                  <td className="p-3 text-sm text-gray-600">
+                    {formatDate(run.createdAt)}
+                  </td>
+                  <td className="p-3">{run.totalResumes}</td>
+                  <td className="p-3">{run.topScore}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
