@@ -1,41 +1,41 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
+from sqlalchemy.orm import Session
 
-from resume_ai_api.dependencies.services import get_job_service
-from resume_ai_api.schemas.jobs import (
-    CreateJobRequest,
-    CreateJobResponse,
-    JobDetailResponse,
-)
+from resume_ai_api.db.session import get_db
+from resume_ai_api.repositories.job_repository import JobRepository
+from resume_ai_api.schemas.jobs import JobCreateRequest, JobCreateResponse, JobDetailResponse
 from resume_ai_api.services.job_service import JobService
 
-router = APIRouter(tags=["Jobs"])
+router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 
-@router.post("/jobs", response_model=CreateJobResponse, status_code=201)
+def get_job_service(db: Session = Depends(get_db)) -> JobService:
+    repo = JobRepository(db)
+    return JobService(repo)
+
+
+@router.post("", response_model=JobCreateResponse)
 def create_job(
-    payload: CreateJobRequest,
-    job_service: JobService = Depends(get_job_service),
-) -> CreateJobResponse:
-    job_id = job_service.create_job(
-        job_title=payload.job_title,
-        resume_text=payload.resume_text,
-        job_description_text=payload.job_description_text,
-    )
-    return CreateJobResponse(job_id=job_id)
+    payload: JobCreateRequest,
+    x_user_id: str | None = Header(default=None),
+    service: JobService = Depends(get_job_service),
+):
+    job_id = service.create_job(payload, user_id=x_user_id)
+    return JobCreateResponse(job_id=job_id)
 
 
-@router.get("/jobs/{job_id}", response_model=JobDetailResponse)
+@router.get("", response_model=list[JobDetailResponse])
+def list_jobs(
+    x_user_id: str | None = Header(default=None),
+    service: JobService = Depends(get_job_service),
+):
+    jobs = service.list_jobs(user_id=x_user_id)
+    return [service.get_job(job.job_id) for job in jobs]
+
+
+@router.get("/{job_id}", response_model=JobDetailResponse)
 def get_job(
     job_id: str,
-    job_service: JobService = Depends(get_job_service),
-) -> JobDetailResponse:
-    job = job_service.get_job(job_id)
-
-    return JobDetailResponse(
-        job_id=job.job_id,
-        job_title=job.job_title,
-        status=job.status,
-        resume_text=job.resume_text,
-        job_description_text=job.job_description_text,
-        created_at=job.created_at,
-    )
+    service: JobService = Depends(get_job_service),
+):
+    return service.get_job(job_id)

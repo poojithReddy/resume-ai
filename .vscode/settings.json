@@ -3,5 +3,9 @@
     "packages/ui/src/styles/tailwind.css": "packages/ui/tailwind.config.js",
     "packages/ui/src/**/*.tsx": "packages/ui/tailwind.config.js",
     "apps/web/src/**/*.tsx": "apps/web/tailwind.config.js"
-  }
+  },
+  "python.analysis.extraPaths": [
+    "./apps/api/src",
+    "./apps/api/src/resume_ai_api"
+  ]
 }

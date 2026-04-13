@@ -6,9 +6,8 @@ from resume_ai_api.db.session import SessionLocal
 
 
 def get_db_session() -> Generator[Session, None, None]:
-    db_session = SessionLocal()
-
+    db = SessionLocal()
     try:
-        yield db_session
+        yield db
     finally:
-        db_session.close()
+        db.close()

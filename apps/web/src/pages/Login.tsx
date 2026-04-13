@@ -1,15 +1,42 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button, Card, PageHeader, TextField } from "@resume-ai/ui";
+
+import { login } from "@/lib/auth";
 
 export default function Login() {
   const navigate = useNavigate();
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    // Mock auth (replace with backend later)
-    localStorage.setItem("auth_token", "demo-token");
-    navigate("/dashboard");
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    const form = new FormData(e.currentTarget);
+
+    const email = String(form.get("email") ?? "");
+    const password = String(form.get("password") ?? "");
+
+    try {
+      const result = await login({
+        email,
+        password,
+      });
+
+      localStorage.setItem("auth_token", result.user_id);
+      navigate("/dashboard");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Login failed");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -19,7 +46,7 @@ export default function Login() {
           <div className="space-y-6">
             <PageHeader
               title="Sign in"
-              subtitle="Access your dashboard and saved screening runs."
+              subtitle="Access your saved analyses and results."
             />
 
             <form className="space-y-4" onSubmit={onSubmit}>
@@ -28,7 +55,6 @@ export default function Login() {
                 name="email"
                 type="email"
                 placeholder="you@company.com"
-                autoComplete="email"
                 required
               />
 
@@ -36,32 +62,21 @@ export default function Login() {
                 label="Password"
                 name="password"
                 type="password"
-                placeholder="••••••••"
-                autoComplete="current-password"
+                placeholder="Enter your password"
                 required
               />
 
-              <Button variant="primary" fullWidth type="submit">
-                Sign in
+              {error && (
+                <div className="text-sm text-red-600">{error}</div>
+              )}
+
+              <Button variant="primary" fullWidth type="submit" disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
-
-              <div className="flex items-center justify-between text-sm">
-                <Link to="/demo" className="underline">
-                  Try demo
-                </Link>
-
-                <button
-                  type="button"
-                  className="underline"
-                  onClick={() => alert("Password reset will be added later")}
-                >
-                  Forgot password?
-                </button>
-              </div>
             </form>
 
             <div className="text-sm text-gray-600">
-              Don&apos;t have an account?{" "}
+              Don’t have an account?{" "}
               <Link to="/signup" className="underline">
                 Create one
               </Link>

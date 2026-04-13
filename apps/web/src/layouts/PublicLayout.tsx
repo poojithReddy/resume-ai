@@ -1,20 +1,25 @@
-import { Link, Outlet } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
+import { Button } from "@resume-ai/ui";
 
 export default function PublicLayout() {
   return (
-    <div className="min-h-screen">
-      <header className="border-b">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="font-bold">Resume-AI</Link>
-          <nav className="flex gap-4">
-            <Link to="/demo">Demo</Link>
-            <Link to="/login">Login</Link>
-            <Link to="/signup">Sign up</Link>
-          </nav>
+    <div className="min-h-screen flex flex-col">
+      <header className="border-b px-6 py-4 flex justify-between items-center">
+        <Link to="/" className="font-semibold text-lg">
+          Resume AI
+        </Link>
+
+        <div className="flex items-center gap-3">
+          <Link to="/login">
+            <Button variant="ghost">Login</Button>
+          </Link>
+          <Link to="/signup">
+            <Button>Sign up</Button>
+          </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <main className="flex-1">
         <Outlet />
       </main>
     </div>

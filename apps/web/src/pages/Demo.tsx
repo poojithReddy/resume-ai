@@ -1,75 +1,112 @@
-import { useNavigate } from "react-router-dom";
-import { Card, Button } from "@resume-ai/ui";
-
-import { createJob } from "../lib/api";
+import { useState } from "react";
+import { Button, Card, PageHeader, TextField } from "@resume-ai/ui";
 
 export default function Demo() {
-  const navigate = useNavigate();
+  const [jobTitle, setJobTitle] = useState("");
+  const [resume, setResume] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [result, setResult] = useState<{
+    score: number;
+    matched: string[];
+    missing: string[];
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  async function handleRunDemo() {
-  const result = await createJob({
-    job_title: "Demo Full Stack Role",
-    resume_text: "Demo resume text",
-    job_description_text: "Demo job description",
-  });
+  function runDemo() {
+    setLoading(true);
 
-  navigate(`/results/${result.job_id}`);
-}
+    setTimeout(() => {
+      const resumeWords = new Set(resume.toLowerCase().split(/\s+/).filter(Boolean));
+      const jdWords = new Set(jobDescription.toLowerCase().split(/\s+/).filter(Boolean));
+
+      const matched = [...resumeWords].filter((word) => jdWords.has(word));
+      const missing = [...jdWords].filter((word) => !resumeWords.has(word));
+
+      const score = Math.floor(
+        (matched.length / Math.max(jdWords.size, 1)) * 100,
+      );
+
+      setResult({
+        score,
+        matched: matched.slice(0, 5),
+        missing: missing.slice(0, 5),
+      });
+
+      setLoading(false);
+    }, 800);
+  }
 
   return (
-    <div className="min-h-[calc(100vh-64px)]">
-      <div className="mx-auto max-w-3xl px-4 py-10 space-y-6">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">Demo screening run</h1>
-          <p className="text-gray-600 max-w-2xl">
-            This is a guided demo using sample data. It shows how we score candidates,
-            what matched, what’s missing, and the evidence behind each match.
-          </p>
-        </div>
+    <div className="p-6 flex justify-center">
+      <div className="w-full max-w-2xl space-y-6">
+        <Card padding="lg">
+          <PageHeader
+            title="Try Demo"
+            subtitle="Run a quick analysis without logging in"
+          />
 
-        {/* What you’ll see */}
-        <Card padding="lg" className="space-y-3">
-          <div className="text-sm font-semibold">What you’ll see</div>
-          <ul className="list-disc pl-5 text-gray-700 space-y-1">
-            <li>A match score per resume (0–100)</li>
-            <li>Matched vs missing skills</li>
-            <li>Evidence snippets you can reference during review</li>
-          </ul>
-          <p className="text-sm text-gray-500">
-            No upload yet — we’ll add that once backend + AI is connected.
-          </p>
-        </Card>
+          <div className="space-y-4 mt-4">
+            <TextField
+              label="Job Title"
+              name="job_title"
+              value={jobTitle}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setJobTitle(e.target.value)}
+              placeholder="Frontend Developer"
+            />
 
-        {/* Actions */}
-        <Card padding="lg" className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <div className="font-semibold">Run the sample job</div>
-            <div className="text-sm text-gray-600">
-              This will create a real job via backend
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Resume</label>
+              <textarea
+                className="w-full rounded border px-3 py-2 min-h-[140px]"
+                value={resume}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setResume(e.target.value)}
+                placeholder="Paste resume text here..."
+              />
             </div>
-          </div>
 
-          <div className="flex gap-3">
-            <Button
-              variant="primary"
-              onClick={handleRunDemo}
-            >
-              Run demo
-            </Button>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Job Description</label>
+              <textarea
+                className="w-full rounded border px-3 py-2 min-h-[140px]"
+                value={jobDescription}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setJobDescription(e.target.value)
+                }
+                placeholder="Paste job description here..."
+              />
+            </div>
 
-            <Button
-              variant="secondary"
-              onClick={() => navigate("/")}
-            >
-              Back to landing
+            <Button onClick={runDemo} disabled={loading}>
+              {loading ? "Running..." : "Run Demo"}
             </Button>
           </div>
         </Card>
 
-        <div className="text-xs text-gray-500">
-          Now this actually creates a job in the backend instead of using mock data.
-        </div>
+        {result && (
+          <Card padding="md">
+            <div className="text-lg font-semibold">
+              Score: {result.score}%
+            </div>
+
+            <div className="mt-4">
+              <div className="font-semibold">Matched</div>
+              <ul className="list-disc ml-5">
+                {result.matched.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-4">
+              <div className="font-semibold">Missing</div>
+              <ul className="list-disc ml-5">
+                {result.missing.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );
