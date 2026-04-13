@@ -1,16 +1,23 @@
 from datetime import datetime
-
-from pydantic import BaseModel, Field
-
-
-class CreateJobRequest(BaseModel):
-    job_title: str = Field(min_length=1, description="Job title")
-    resume_text: str = Field(min_length=1, description="Plain text resume content")
-    job_description_text: str = Field(min_length=1, description="Plain text job description")
+from pydantic import BaseModel
 
 
-class CreateJobResponse(BaseModel):
+class JobCreateRequest(BaseModel):
+    job_title: str
+    job_description_text: str
+    resume_text: str
+
+
+class JobCreateResponse(BaseModel):
     job_id: str
+
+
+class Scorecard(BaseModel):
+    score: int
+    match_band: str
+    summary: str
+    matched_points: list[str]
+    missing_points: list[str]
 
 
 class JobDetailResponse(BaseModel):
@@ -20,3 +27,4 @@ class JobDetailResponse(BaseModel):
     resume_text: str
     job_description_text: str
     created_at: datetime
+    scorecard: Scorecard

@@ -1,17 +1,24 @@
-class AppError(Exception):
-    """Base class for errors we want to return to the client in a clean way."""
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
-    def __init__(self, message: str, *, code: str = "app_error", status_code: int = 400):
-        super().__init__(message)
+
+class AppError(Exception):
+    def __init__(self, message: str, code: str = "APP_ERROR", status_code: int = 400):
         self.message = message
         self.code = code
         self.status_code = status_code
+        super().__init__(message)
 
 
-class JobNotFound(AppError):
-    def __init__(self, job_id: str):
-        super().__init__(
-            message=f"Job not found: {job_id}",
-            code="job_not_found",
-            status_code=404,
-        )
+def app_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    app_error = exc if isinstance(exc, AppError) else AppError("Something went wrong", status_code=500)
+
+    return JSONResponse(
+        status_code=app_error.status_code,
+        content={
+            "error": {
+                "code": app_error.code,
+                "message": app_error.message,
+            }
+        },
+    )

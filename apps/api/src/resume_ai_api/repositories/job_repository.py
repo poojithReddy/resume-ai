@@ -4,16 +4,17 @@ from resume_ai_api.db.models import Job
 
 
 class JobRepository:
-    def __init__(self, db_session: Session) -> None:
-        self._db_session = db_session
+    def __init__(self, db: Session):
+        self._db = db
 
     def create_job(
         self,
         job_id: str,
         job_title: str,
+        status: str,
         resume_text: str,
         job_description_text: str,
-        status: str = "pending",
+        user_id: str | None = None,
     ) -> Job:
         job = Job(
             job_id=job_id,
@@ -21,17 +22,26 @@ class JobRepository:
             status=status,
             resume_text=resume_text,
             job_description_text=job_description_text,
+            user_id=user_id,
         )
 
-        self._db_session.add(job)
-        self._db_session.commit()
-        self._db_session.refresh(job)
+        self._db.add(job)
+        self._db.commit()
+        self._db.refresh(job)
 
         return job
 
-    def get_job_by_id(self, job_id: str) -> Job | None:
+    def get_job(self, job_id: str) -> Job | None:
         return (
-            self._db_session.query(Job)
+            self._db.query(Job)
             .filter(Job.job_id == job_id)
             .first()
         )
+
+    def list_jobs(self, user_id: str | None = None):
+        query = self._db.query(Job)
+
+        if user_id:
+            query = query.filter(Job.user_id == user_id)
+
+        return query.order_by(Job.created_at.desc()).all()

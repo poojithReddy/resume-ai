@@ -1,52 +1,34 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
+import { Button } from "@resume-ai/ui";
 
 export default function AppLayout() {
   const navigate = useNavigate();
 
-  function logout() {
+  function handleLogout() {
     localStorage.removeItem("auth_token");
     navigate("/login");
   }
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top bar */}
-      <header className="border-b bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-          <div className="font-semibold text-lg cursor-pointer" onClick={() => navigate("/dashboard")}>
-            Resume AI
-          </div>
+      <header className="border-b px-6 py-4 flex justify-between items-center">
+        <Link to="/dashboard" className="font-semibold text-lg">
+          Resume AI
+        </Link>
 
-          <nav className="flex items-center gap-4 text-sm">
-            <button
-              className="underline"
-              onClick={() => navigate("/dashboard")}
-            >
-              Dashboard
-            </button>
+        <div className="flex items-center gap-3">
+          <Link to="/create">
+            <Button variant="secondary">New Analysis</Button>
+          </Link>
 
-            <button
-              className="underline"
-              onClick={() => navigate("/settings")}
-            >
-              Settings
-            </button>
-
-            <button
-              className="underline text-red-600"
-              onClick={logout}
-            >
-              Logout
-            </button>
-          </nav>
+          <Button variant="ghost" onClick={handleLogout}>
+            Logout
+          </Button>
         </div>
       </header>
 
-      {/* Page content */}
-      <main className="flex-1 bg-gray-50">
-        <div className="mx-auto max-w-6xl px-4 py-6">
-          <Outlet />
-        </div>
+      <main className="flex-1">
+        <Outlet />
       </main>
     </div>
   );
