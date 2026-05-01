@@ -7,14 +7,14 @@ export default function Landing() {
       <div className="w-full max-w-3xl space-y-6 text-center">
         <PageHeader
           title="Resume AI"
-          subtitle="Analyze your resume against job descriptions instantly"
+          subtitle="Analyze your resume with AI and improve your chances of landing interviews"
         />
 
         <Card padding="lg">
           <div className="space-y-4">
             <p className="text-gray-600">
-              Get a match score, keyword insights, and improve your chances of
-              landing interviews.
+              Get a match score, keyword insights, and actionable feedback
+              to stand out in job applications.
             </p>
 
             <div className="flex justify-center gap-3">

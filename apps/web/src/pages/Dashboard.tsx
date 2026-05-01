@@ -50,9 +50,38 @@ export default function Dashboard() {
           <Card key={job.job_id} padding="md">
             <div className="flex justify-between items-center">
               <div>
-                <div className="font-semibold">{job.job_title}</div>
+                <div className="font-semibold text-lg">
+                  {job.job_title}
+                </div>
+
                 <div className="text-sm text-gray-500">
                   {new Date(job.created_at).toLocaleString()}
+                </div>
+
+                <div className="mt-2 flex items-center gap-3">
+                  <span className="text-sm">
+                    Status:{" "}
+                    <span className="font-medium capitalize">
+                      {job.status}
+                    </span>
+                  </span>
+
+                  {job.score !== null && (
+                    <span className="text-sm">
+                      Score:{" "}
+                      <span
+                        className={`font-semibold ${
+                          job.score >= 80
+                            ? "text-green-600"
+                            : job.score >= 60
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {job.score}%
+                      </span>
+                    </span>
+                  )}
                 </div>
               </div>
 

@@ -14,6 +14,7 @@ export type LoginRequest = {
 export type AuthResponse = {
   user_id: string;
   email: string;
+  token: string;
 };
 
 async function readErrorMessage(response: Response): Promise<string> {

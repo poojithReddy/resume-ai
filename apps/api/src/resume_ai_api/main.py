@@ -1,11 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer
 
 from resume_ai_api.api.v1.router import router as api_router
 from resume_ai_api.core.errors import AppError, app_error_handler
 
 
 app = FastAPI(title="Resume AI API")
+
+security = HTTPBearer()
 
 app.add_exception_handler(AppError, app_error_handler)
 

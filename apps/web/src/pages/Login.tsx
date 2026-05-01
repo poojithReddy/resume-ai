@@ -26,7 +26,9 @@ export default function Login() {
         password,
       });
 
-      localStorage.setItem("auth_token", result.user_id);
+      // ✅ FIX: store JWT token instead of user_id
+      localStorage.setItem("auth_token", result.token);
+
       navigate("/dashboard");
     } catch (err) {
       if (err instanceof Error) {
@@ -70,7 +72,12 @@ export default function Login() {
                 <div className="text-sm text-red-600">{error}</div>
               )}
 
-              <Button variant="primary" fullWidth type="submit" disabled={isLoading}>
+              <Button
+                variant="primary"
+                fullWidth
+                type="submit"
+                disabled={isLoading}
+              >
                 {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </form>

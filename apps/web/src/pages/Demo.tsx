@@ -16,11 +16,19 @@ export default function Demo() {
     setLoading(true);
 
     setTimeout(() => {
-      const resumeWords = new Set(resume.toLowerCase().split(/\s+/).filter(Boolean));
-      const jdWords = new Set(jobDescription.toLowerCase().split(/\s+/).filter(Boolean));
+      const resumeWords = new Set(
+        resume.toLowerCase().split(/\s+/).filter(Boolean),
+      );
+      const jdWords = new Set(
+        jobDescription.toLowerCase().split(/\s+/).filter(Boolean),
+      );
 
-      const matched = [...resumeWords].filter((word) => jdWords.has(word));
-      const missing = [...jdWords].filter((word) => !resumeWords.has(word));
+      const matched = [...resumeWords].filter((word) =>
+        jdWords.has(word),
+      );
+      const missing = [...jdWords].filter(
+        (word) => !resumeWords.has(word),
+      );
 
       const score = Math.floor(
         (matched.length / Math.max(jdWords.size, 1)) * 100,
@@ -42,7 +50,7 @@ export default function Demo() {
         <Card padding="lg">
           <PageHeader
             title="Try Demo"
-            subtitle="Run a quick analysis without logging in"
+            subtitle="Run a quick analysis without logging in (demo mode)"
           />
 
           <div className="space-y-4 mt-4">
@@ -50,7 +58,7 @@ export default function Demo() {
               label="Job Title"
               name="job_title"
               value={jobTitle}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setJobTitle(e.target.value)}
+              onChange={(e) => setJobTitle(e.target.value)}
               placeholder="Frontend Developer"
             />
 
@@ -59,17 +67,19 @@ export default function Demo() {
               <textarea
                 className="w-full rounded border px-3 py-2 min-h-[140px]"
                 value={resume}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setResume(e.target.value)}
+                onChange={(e) => setResume(e.target.value)}
                 placeholder="Paste resume text here..."
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Job Description</label>
+              <label className="text-sm font-medium">
+                Job Description
+              </label>
               <textarea
                 className="w-full rounded border px-3 py-2 min-h-[140px]"
                 value={jobDescription}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                onChange={(e) =>
                   setJobDescription(e.target.value)
                 }
                 placeholder="Paste job description here..."

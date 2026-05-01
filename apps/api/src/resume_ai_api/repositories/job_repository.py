@@ -15,6 +15,11 @@ class JobRepository:
         resume_text: str,
         job_description_text: str,
         user_id: str | None = None,
+        score: int | None = None,
+        match_band: str | None = None,
+        summary: str | None = None,
+        matched_points: str | None = None,
+        missing_points: str | None = None,
     ) -> Job:
         job = Job(
             job_id=job_id,
@@ -23,6 +28,11 @@ class JobRepository:
             resume_text=resume_text,
             job_description_text=job_description_text,
             user_id=user_id,
+            score=score,
+            match_band=match_band,
+            summary=summary,
+            matched_points=matched_points,
+            missing_points=missing_points,
         )
 
         self._db.add(job)

@@ -9,7 +9,7 @@ export default function NotFound() {
           <div className="space-y-6 text-center">
             <PageHeader
               title="Page not found"
-              subtitle="The page you’re looking for doesn’t exist."
+              subtitle="Oops! The page you're looking for doesn’t exist."
             />
 
             <Link to="/dashboard">

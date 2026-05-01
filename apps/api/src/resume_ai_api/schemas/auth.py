@@ -29,3 +29,18 @@ class LoginRequest(BaseModel):
 class AuthResponse(BaseModel):
     user_id: str
     email: EmailStr
+    token: str
+
+class UpdateProfileRequest(BaseModel):
+    name: str | None = None
+    password: str | None = None
+    confirm_password: str | None = None
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str | None):
+        if value and not PASSWORD_PATTERN.match(value):
+            raise ValueError(
+                "Password must be at least 8 characters and include 1 uppercase letter and 1 symbol."
+            )
+        return value

@@ -41,7 +41,8 @@ export default function Signup() {
         password,
       });
 
-      localStorage.setItem("auth_token", result.user_id);
+      localStorage.setItem("auth_token", result.token);
+
       navigate("/dashboard");
     } catch (err) {
       if (err instanceof Error) {
@@ -93,7 +94,12 @@ export default function Signup() {
                 <div className="text-sm text-red-600">{error}</div>
               )}
 
-              <Button variant="primary" fullWidth type="submit" disabled={isLoading}>
+              <Button
+                variant="primary"
+                fullWidth
+                type="submit"
+                disabled={isLoading}
+              >
                 {isLoading ? "Creating..." : "Create account"}
               </Button>
             </form>

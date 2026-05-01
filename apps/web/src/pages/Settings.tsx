@@ -29,19 +29,26 @@ export default function Settings() {
     clearSettings();
     setSettings(defaultSettings);
     setSavedAt(null);
-    // optional: clear auth token too if you want
-    // localStorage.removeItem("auth_token");
     alert("Settings cleared.");
   }
 
+  function handleLogout() {
+    localStorage.removeItem("auth_token");
+    window.location.href = "/login";
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-gray-600 mt-1">
           Preferences are stored locally on this device.
         </p>
-        {savedAt && <p className="text-sm text-gray-500 mt-2">Saved at {savedAt}</p>}
+        {savedAt && (
+          <p className="text-sm text-gray-500 mt-2">
+            Saved at {savedAt}
+          </p>
+        )}
       </div>
 
       {/* Profile */}
@@ -50,11 +57,15 @@ export default function Settings() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-1">
-            <div className="text-sm text-gray-600">Display name</div>
+            <div className="text-sm text-gray-600">
+              Display name
+            </div>
             <input
               className="w-full border rounded px-3 py-2"
               value={settings.displayName}
-              onChange={(e) => update({ displayName: e.target.value })}
+              onChange={(e) =>
+                update({ displayName: e.target.value })
+              }
             />
           </label>
 
@@ -63,7 +74,9 @@ export default function Settings() {
             <input
               className="w-full border rounded px-3 py-2"
               value={settings.email}
-              onChange={(e) => update({ email: e.target.value })}
+              onChange={(e) =>
+                update({ email: e.target.value })
+              }
             />
           </label>
         </div>
@@ -85,7 +98,9 @@ export default function Settings() {
             className={`border rounded px-4 py-2 ${
               settings.demoMode ? "bg-gray-900 text-white" : ""
             }`}
-            onClick={() => update({ demoMode: !settings.demoMode })}
+            onClick={() =>
+              update({ demoMode: !settings.demoMode })
+            }
           >
             {settings.demoMode ? "On" : "Off"}
           </button>
@@ -93,12 +108,17 @@ export default function Settings() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-1">
-            <div className="text-sm text-gray-600">Default results view</div>
+            <div className="text-sm text-gray-600">
+              Default results view
+            </div>
             <select
               className="w-full border rounded px-3 py-2"
               value={settings.defaultView}
               onChange={(e) =>
-                update({ defaultView: e.target.value as AppSettings["defaultView"] })
+                update({
+                  defaultView:
+                    e.target.value as AppSettings["defaultView"],
+                })
               }
             >
               <option value="table">Table</option>
@@ -108,14 +128,19 @@ export default function Settings() {
 
           <label className="space-y-1">
             <div className="text-sm text-gray-600">
-              Minimum score: <span className="font-semibold">{settings.minScore}</span>
+              Minimum score:{" "}
+              <span className="font-semibold">
+                {settings.minScore}
+              </span>
             </div>
             <input
               type="range"
               min={0}
               max={100}
               value={settings.minScore}
-              onChange={(e) => update({ minScore: Number(e.target.value) })}
+              onChange={(e) =>
+                update({ minScore: Number(e.target.value) })
+              }
               className="w-full"
             />
           </label>
@@ -127,17 +152,31 @@ export default function Settings() {
         <h2 className="text-lg font-semibold">Actions</h2>
 
         <div className="flex flex-wrap gap-3">
-          <button className="border rounded px-4 py-2" onClick={reset}>
+          <button
+            className="border rounded px-4 py-2"
+            onClick={reset}
+          >
             Reset to defaults
           </button>
 
-          <button className="border rounded px-4 py-2" onClick={clearAll}>
+          <button
+            className="border rounded px-4 py-2"
+            onClick={clearAll}
+          >
             Clear settings
+          </button>
+
+          <button
+            className="border rounded px-4 py-2 bg-red-500 text-white"
+            onClick={handleLogout}
+          >
+            Logout
           </button>
         </div>
 
         <p className="text-sm text-gray-600">
-          Later, when backend is added, these can be saved per user account.
+          Later, when backend is added, these can be saved per user
+          account.
         </p>
       </section>
     </div>

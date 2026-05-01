@@ -5,7 +5,7 @@ function getAuthHeaders() {
 
   return {
     "Content-Type": "application/json",
-    ...(token ? { "x-user-id": token } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
@@ -44,6 +44,7 @@ export type Job = {
   job_title: string;
   status: string;
   created_at: string;
+  score: number | null;
 };
 
 export type JobDetailResponse = {

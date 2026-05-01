@@ -1,8 +1,8 @@
-"""init
+"""add score fields to jobs
 
-Revision ID: b09d814faec4
+Revision ID: c8f91b0c34e4
 Revises: 
-Create Date: 2026-04-12 14:48:32.009700
+Create Date: 2026-05-01 22:55:26.486507
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'b09d814faec4'
+revision: str = 'c8f91b0c34e4'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -38,6 +38,11 @@ def upgrade() -> None:
     sa.Column('job_description_text', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('user_id', sa.String(), nullable=True),
+    sa.Column('score', sa.Integer(), nullable=True),
+    sa.Column('match_band', sa.String(), nullable=True),
+    sa.Column('summary', sa.Text(), nullable=True),
+    sa.Column('matched_points', sa.Text(), nullable=True),
+    sa.Column('missing_points', sa.Text(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('job_id')
     )

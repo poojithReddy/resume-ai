@@ -15,6 +15,13 @@ class UserRepository:
             .first()
         )
 
+    def get_by_id(self, user_id: str) -> User | None:
+        return (
+            self._db.query(User)
+            .filter(User.id == user_id)
+            .first()
+        )
+
     def create_user(self, name: str, email: str, password_hash: str) -> User:
         user = User(
             name=name,
@@ -28,5 +35,14 @@ class UserRepository:
             self._db.refresh(user)
             return user
         except IntegrityError:
+            self._db.rollback()
+            raise
+
+    def save(self, user: User) -> None:
+        try:
+            self._db.add(user)
+            self._db.commit()
+            self._db.refresh(user)
+        except Exception:
             self._db.rollback()
             raise

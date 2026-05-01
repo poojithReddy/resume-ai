@@ -1,7 +1,7 @@
 from datetime import datetime
 import uuid
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String, Text, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from resume_ai_api.db.session import Base
@@ -38,5 +38,11 @@ class Job(Base):
         ForeignKey("users.id"),
         nullable=True,
     )
+
+    score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    match_band: Mapped[str | None] = mapped_column(String, nullable=True)
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    matched_points: Mapped[str | None] = mapped_column(Text, nullable=True)
+    missing_points: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     user: Mapped["User | None"] = relationship("User", back_populates="jobs")
