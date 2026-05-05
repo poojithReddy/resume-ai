@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { Button, Card, PageHeader, TextField } from "@resume-ai/ui";
 
-const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
+import { apiClient } from "@/lib/apiClient";
 
-function getAuthHeaders() {
-  const token = localStorage.getItem("auth_token");
+const PASSWORD_RULE_MESSAGE =
+  "Password must be at least 8 characters and include 1 uppercase letter and 1 symbol.";
 
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
+function isValidPassword(value: string) {
+  return /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/.test(value);
 }
 
 export default function Profile() {
@@ -26,33 +24,34 @@ export default function Profile() {
     setError(null);
     setMessage(null);
 
+    // password match check
+    if (password && password !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    // password rule validation
+    if (password && !isValidPassword(password)) {
+      setError(PASSWORD_RULE_MESSAGE);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/update-profile`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          name: name || undefined,
-          password: password || undefined,
-          confirm_password: confirmPassword || undefined,
-        }),
+      await apiClient.post("/auth/update-profile", {
+        name: name || undefined,
+        password: password || undefined,
+        confirm_password: confirmPassword || undefined,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.error?.message || "Update failed");
-      }
 
       setMessage("Profile updated successfully");
 
       setPassword("");
       setConfirmPassword("");
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Something went wrong");
-      }
+      if (err instanceof Error) setError(err.message);
+      else setError("Something went wrong");
     } finally {
       setLoading(false);
     }

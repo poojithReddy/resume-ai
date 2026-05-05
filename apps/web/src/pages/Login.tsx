@@ -20,14 +20,17 @@ export default function Login() {
     const email = String(form.get("email") ?? "");
     const password = String(form.get("password") ?? "");
 
+    if (!email || !password) {
+      setError("Email and password are required");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const result = await login({
+      await login({
         email,
         password,
       });
-
-      // ✅ FIX: store JWT token instead of user_id
-      localStorage.setItem("auth_token", result.token);
 
       navigate("/dashboard");
     } catch (err) {

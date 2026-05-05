@@ -22,11 +22,21 @@ class UserRepository:
             .first()
         )
 
-    def create_user(self, name: str, email: str, password_hash: str) -> User:
+    def list_users(self):
+        return self._db.query(User).all()
+
+    def create_user(
+        self,
+        name: str,
+        email: str,
+        password_hash: str,
+        role: str,
+    ) -> User:
         user = User(
             name=name,
             email=email,
             password_hash=password_hash,
+            role=role,
         )
 
         try:

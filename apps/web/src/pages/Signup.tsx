@@ -28,6 +28,12 @@ export default function Signup() {
     const email = String(form.get("email") ?? "");
     const password = String(form.get("password") ?? "");
 
+    if (!name || !email || !password) {
+      setError("All fields are required");
+      setIsLoading(false);
+      return;
+    }
+
     if (!isValidPassword(password)) {
       setError(PASSWORD_RULE_MESSAGE);
       setIsLoading(false);
@@ -35,13 +41,11 @@ export default function Signup() {
     }
 
     try {
-      const result = await signup({
+      await signup({
         name,
         email,
         password,
       });
-
-      localStorage.setItem("auth_token", result.token);
 
       navigate("/dashboard");
     } catch (err) {

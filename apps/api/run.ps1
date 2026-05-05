@@ -5,7 +5,7 @@ Write-Host ""
 Write-Host "Starting Resume AI backend API..."
 Write-Host ""
 
-# Always run from this folder, even if script is called elsewhere
+# Always run from this folder
 Set-Location $PSScriptRoot
 
 $venvPath = ".venv"
@@ -21,11 +21,12 @@ if (!(Test-Path $venvPath)) {
 Write-Host "Activating virtual environment..."
 & "$venvPath\Scripts\Activate.ps1"
 
-# Install backend dependencies (safe to run multiple times)
+# Install dependencies from pyproject (correct way)
 Write-Host "Installing backend dependencies..."
-pip install fastapi uvicorn
+pip install --upgrade pip
+pip install -e .
 
-# Run FastAPI dev server with auto-reload
+# Run FastAPI dev server
 Write-Host ""
 Write-Host "Backend running at http://127.0.0.1:8000"
 Write-Host "Swagger UI available at http://127.0.0.1:8000/docs"

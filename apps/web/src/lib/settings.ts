@@ -3,15 +3,15 @@ export type AppSettings = {
   email: string;
   demoMode: boolean;
   defaultView: "table" | "cards";
-  minScore: number; // 0-100
+  minScore: number;
 };
 
 const KEY = "resume_ai_settings_v1";
 
 export const defaultSettings: AppSettings = {
-  displayName: "Demo User",
-  email: "demo@example.com",
-  demoMode: true,
+  displayName: "User",
+  email: "",
+  demoMode: false,
   defaultView: "table",
   minScore: 0,
 };

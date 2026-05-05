@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 
 from resume_ai_api.core.errors import AppError
 from resume_ai_api.core.security import create_access_token
+from resume_ai_api.core.constants import USER_ROLE
 from resume_ai_api.repositories.user_repository import UserRepository
 from resume_ai_api.schemas.auth import (
     LoginRequest,
@@ -36,9 +37,10 @@ class AuthService:
                 name=payload.name,
                 email=email,
                 password_hash=password_hash,
+                role=USER_ROLE,
             )
 
-            token = create_access_token(user.id)
+            token = create_access_token(user.id, user.role)
 
             return {
                 "user_id": user.id,
@@ -64,6 +66,13 @@ class AuthService:
                 status_code=401,
             )
 
+        if not user.is_active:
+            raise AppError(
+                "Your account is inactive. Contact admin.",
+                code="USER_INACTIVE",
+                status_code=403,
+            )
+
         if not pwd_context.verify(payload.password, str(user.password_hash)):
             raise AppError(
                 "Email or password is incorrect.",
@@ -71,7 +80,7 @@ class AuthService:
                 status_code=401,
             )
 
-        token = create_access_token(user.id)
+        token = create_access_token(user.id, user.role)
 
         return {
             "user_id": user.id,
@@ -89,11 +98,9 @@ class AuthService:
                 status_code=404,
             )
 
-        # Update name
         if payload.name:
             user.name = payload.name
 
-        # Update password
         if payload.password:
             if not payload.confirm_password:
                 raise AppError(

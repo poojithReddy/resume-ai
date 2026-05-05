@@ -10,9 +10,14 @@ export default function PublicLayout() {
         </Link>
 
         <div className="flex items-center gap-3">
+          <Link to="/demo">
+            <Button variant="ghost">Demo</Button>
+          </Link>
+
           <Link to="/login">
             <Button variant="ghost">Login</Button>
           </Link>
+
           <Link to="/signup">
             <Button>Sign up</Button>
           </Link>

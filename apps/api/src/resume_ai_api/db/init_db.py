@@ -1,8 +1,11 @@
-from resume_ai_api.db.session import engine, Base
+"""
+This module is intentionally kept minimal.
 
-# Import models so SQLAlchemy registers them
-from resume_ai_api.db import models  # noqa
+Database schema is managed via Alembic migrations.
+Do NOT use Base.metadata.create_all() in this project.
+"""
 
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
+    # No-op: migrations are handled by Alembic
+    pass

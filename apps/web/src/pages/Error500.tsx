@@ -1,15 +1,15 @@
 import { Link } from "react-router-dom";
 import { Button, Card, PageHeader } from "@resume-ai/ui";
 
-export default function NotFound() {
+export default function Error500() {
   return (
     <div className="min-h-[calc(100vh-64px)] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <Card padding="lg">
           <div className="space-y-6 text-center">
             <PageHeader
-              title="Page not found"
-              subtitle="The page you are looking for does not exist or may have been moved."
+              title="Something went wrong"
+              subtitle="Our team is working on this issue. Please try again later."
             />
 
             <div className="flex justify-center gap-3">
