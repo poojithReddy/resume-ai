@@ -26,6 +26,10 @@ export default function Landing() {
                 <Button variant="secondary">Try Demo</Button>
               </Link>
             </div>
+
+            <div className="text-sm text-gray-500 mt-4">
+              Built for candidates and recruiters to simplify resume screening.
+            </div>
           </div>
         </Card>
       </div>

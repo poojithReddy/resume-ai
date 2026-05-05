@@ -1,8 +1,8 @@
-"""add score fields to jobs
+"""add job role fields
 
-Revision ID: c8f91b0c34e4
+Revision ID: 0e097682f8b0
 Revises: 
-Create Date: 2026-05-01 22:55:26.486507
+Create Date: 2026-05-02 22:37:31.582757
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'c8f91b0c34e4'
+revision: str = '0e097682f8b0'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,6 +26,8 @@ def upgrade() -> None:
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
     sa.Column('password_hash', sa.String(), nullable=False),
+    sa.Column('role', sa.String(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -33,6 +35,8 @@ def upgrade() -> None:
     op.create_table('jobs',
     sa.Column('job_id', sa.String(), nullable=False),
     sa.Column('job_title', sa.String(), nullable=False),
+    sa.Column('job_role_category', sa.String(), nullable=False),
+    sa.Column('job_role_custom', sa.String(), nullable=True),
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('resume_text', sa.String(), nullable=False),
     sa.Column('job_description_text', sa.String(), nullable=False),

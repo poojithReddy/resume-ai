@@ -5,15 +5,30 @@ export default function Demo() {
   const [jobTitle, setJobTitle] = useState("");
   const [resume, setResume] = useState("");
   const [jobDescription, setJobDescription] = useState("");
+
   const [result, setResult] = useState<{
     score: number;
     matched: string[];
     missing: string[];
   } | null>(null);
+
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function validate() {
+    if (!jobTitle || !resume || !jobDescription) {
+      setError("All fields are required");
+      return false;
+    }
+    return true;
+  }
 
   function runDemo() {
+    if (!validate()) return;
+
     setLoading(true);
+    setError(null);
+    setResult(null);
 
     setTimeout(() => {
       const resumeWords = new Set(
@@ -85,6 +100,10 @@ export default function Demo() {
                 placeholder="Paste job description here..."
               />
             </div>
+
+            {error && (
+              <div className="text-red-600 text-sm">{error}</div>
+            )}
 
             <Button onClick={runDemo} disabled={loading}>
               {loading ? "Running..." : "Run Demo"}

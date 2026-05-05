@@ -6,6 +6,7 @@ import {
   saveSettings,
   type AppSettings,
 } from "@/lib/settings";
+import { clearToken } from "@/lib/authUtil";
 
 export default function Settings() {
   const initial = useMemo(() => loadSettings(), []);
@@ -33,7 +34,7 @@ export default function Settings() {
   }
 
   function handleLogout() {
-    localStorage.removeItem("auth_token");
+    clearToken();
     window.location.href = "/login";
   }
 

@@ -2,14 +2,17 @@ import re
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+from resume_ai_api.core.constants import USER_ROLE, ADMIN_ROLE, SUPER_ADMIN_ROLE
+
 
 PASSWORD_PATTERN = re.compile(r"^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$")
 
 
-class SignupRequest(BaseModel):
+class CreateUserRequest(BaseModel):
     name: str = Field(min_length=1)
     email: EmailStr
     password: str
+    role: str = USER_ROLE
 
     @field_validator("password")
     @classmethod
@@ -20,28 +23,17 @@ class SignupRequest(BaseModel):
             )
         return value
 
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
-
-
-class UpdateProfileRequest(BaseModel):
-    name: str | None = None
-    password: str | None = None
-    confirm_password: str | None = None
-
-    @field_validator("password")
+    @field_validator("role")
     @classmethod
-    def validate_password(cls, value: str | None):
-        if value and not PASSWORD_PATTERN.match(value):
-            raise ValueError(
-                "Password must be at least 8 characters and include 1 uppercase letter and 1 symbol."
-            )
+    def validate_role(cls, value: str) -> str:
+        if value not in [USER_ROLE, ADMIN_ROLE, SUPER_ADMIN_ROLE]:
+            raise ValueError("Invalid role")
         return value
 
 
-class AuthResponse(BaseModel):
-    user_id: str
+class UserResponse(BaseModel):
+    id: str
+    name: str
     email: EmailStr
-    token: str
+    role: str
+    is_active: bool

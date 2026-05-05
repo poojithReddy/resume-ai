@@ -2,36 +2,32 @@ import { Outlet, Link, useNavigate } from "react-router-dom";
 import { Button } from "@resume-ai/ui";
 import { clearToken } from "@/lib/authUtil";
 
-export default function AppLayout() {
+export default function AdminLayout() {
   const navigate = useNavigate();
 
   function handleLogout() {
     clearToken();
-    navigate("/login");
+    navigate("/admin");
   }
 
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b px-6 py-4 flex justify-between items-center">
-        <Link to="/dashboard" className="font-semibold text-lg">
-          Resume AI
+        <Link to="/admin/users" className="font-semibold text-lg">
+          Resume AI Admin
         </Link>
 
         <div className="flex items-center gap-3">
-          <Link to="/dashboard">
-            <Button variant="ghost">Dashboard</Button>
+          <Link to="/admin/users">
+            <Button variant="ghost">Users</Button>
           </Link>
 
-          <Link to="/create">
-            <Button variant="secondary">New Analysis</Button>
+          <Link to="/admin/create-user">
+            <Button variant="secondary">Create User</Button>
           </Link>
 
-          <Link to="/profile">
-            <Button variant="ghost">Profile</Button>
-          </Link>
-
-          <Link to="/settings">
-            <Button variant="ghost">Settings</Button>
+          <Link to="/admin/compare">
+            <Button variant="ghost">Compare</Button>
           </Link>
 
           <Button variant="ghost" onClick={handleLogout}>

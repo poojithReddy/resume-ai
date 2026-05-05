@@ -13,3 +13,15 @@
     @apply bg-gray-50 text-gray-900;
   }
 }
+
+@layer components {
+  .app-container {
+    @apply max-w-7xl mx-auto px-4;
+  }
+}
+
+@layer utilities {
+  .text-muted {
+    @apply text-gray-500;
+  }
+}

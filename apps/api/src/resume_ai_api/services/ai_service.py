@@ -22,21 +22,23 @@ class AIService:
         prompt = f"""
 You are an assistant that evaluates how well a resume matches a job description.
 
-Return ONLY valid JSON with this exact shape:
+Return ONLY valid JSON in this exact format:
+
 {{
   "score": 0,
   "match_band": "Poor",
   "summary": "short summary",
-  "matched_points": ["point 1", "point 2", "point 3", "point 4", "point 5"],
-  "missing_points": ["point 1", "point 2", "point 3", "point 4", "point 5"]
+  "matched_points": ["point 1", "point 2"],
+  "missing_points": ["point 1", "point 2"]
 }}
 
 Rules:
 - score must be an integer from 0 to 100
 - match_band must be one of: Excellent, Good, Poor
-- summary must be short and clear
-- matched_points must contain up to 5 concise bullet-style strings
-- missing_points must contain up to 5 concise bullet-style strings
+- summary must be concise
+- matched_points must be a list of strings (max 5)
+- missing_points must be a list of strings (max 5)
+- DO NOT include any explanation outside JSON
 
 Job title:
 {job_title}
@@ -54,10 +56,57 @@ Job description:
                 input=prompt,
             )
 
-            output_text = response.output_text
-            data = json.loads(output_text)
+            output_text = getattr(response, "output_text", None)
 
-            return Scorecard(**data)
+            if not output_text:
+                raise AppError(
+                    "Empty response from AI",
+                    code="AI_EMPTY_RESPONSE",
+                    status_code=500,
+                )
+
+            # Extract JSON safely
+            start = output_text.find("{")
+            end = output_text.rfind("}") + 1
+
+            if start == -1 or end == 0:
+                raise AppError(
+                    "Invalid JSON format from AI",
+                    code="AI_INVALID_JSON",
+                    status_code=500,
+                )
+
+            json_text = output_text[start:end]
+
+            data = json.loads(json_text)
+
+            # Validate & normalize response
+            score = int(data.get("score", 0))
+            score = max(0, min(100, score))  # clamp 0–100
+
+            matched_points = data.get("matched_points", [])
+            missing_points = data.get("missing_points", [])
+
+            if not isinstance(matched_points, list):
+                matched_points = []
+
+            if not isinstance(missing_points, list):
+                missing_points = []
+
+            return Scorecard(
+                score=score,
+                match_band=data.get("match_band", "Poor"),
+                summary=data.get("summary", ""),
+                matched_points=[str(p) for p in matched_points][:5],
+                missing_points=[str(p) for p in missing_points][:5],
+            )
+
+        except json.JSONDecodeError:
+            raise AppError(
+                "Failed to parse AI response",
+                code="AI_JSON_PARSE_ERROR",
+                status_code=500,
+            )
 
         except Exception as exc:
             raise AppError(

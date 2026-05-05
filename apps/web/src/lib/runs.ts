@@ -1,7 +1,7 @@
 export type RunSummary = {
   jobId: string;
   jobTitle: string;
-  createdAt: string; // ISO string
+  createdAt: string;
   totalResumes: number;
   topScore: number;
 };
