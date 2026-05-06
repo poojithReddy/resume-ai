@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Card, PageHeader, TextField } from "@resume-ai/ui";
+import { Button, Card, PageHeader } from "@resume-ai/ui";
 
 import { createJob } from "@/lib/api";
+import toast from "react-hot-toast";
 
 const ROLE_OPTIONS = [
   { label: "Frontend Developer", value: "software" },
@@ -29,27 +30,39 @@ export default function CreateAnalysis() {
   const [jobDescription, setJobDescription] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const [errors, setErrors] = useState<any>({});
 
   function validate() {
-    if (!jobTitle || !resume || !jobDescription || !jobRoleCategory) {
-      setError("All fields are required");
-      return false;
-    }
+    const newErrors: any = {};
+
+    if (!jobTitle) newErrors.jobTitle = "Required";
+    if (!jobRoleCategory) newErrors.role = "Required";
+    if (!resume) newErrors.resume = "Required";
+    if (!jobDescription) newErrors.jd = "Required";
 
     if (jobRoleCategory === "other" && !jobRoleCustom) {
-      setError("Custom job role is required");
-      return false;
+      newErrors.customRole = "Required";
     }
 
-    return true;
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  }
+
+  function resetForm() {
+    setJobTitle("");
+    setJobRoleCategory("");
+    setJobRoleCustom("");
+    setResume("");
+    setJobDescription("");
+    setErrors({});
   }
 
   async function handleSubmit() {
     if (!validate()) return;
 
     setLoading(true);
-    setError(null);
 
     try {
       const payload: any = {
@@ -65,101 +78,161 @@ export default function CreateAnalysis() {
 
       const result = await createJob(payload);
 
+      toast.success("Analysis created");
+
       navigate(`/results/${result.job_id}`);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Failed to create analysis");
-      }
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create analysis"
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="p-6 flex justify-center">
+    <div className="p-4 tablet:p-6 flex justify-center">
       <div className="w-full max-w-2xl space-y-6">
+
+        <PageHeader
+          title="Create Analysis"
+          subtitle="Compare a resume against a job description"
+        />
+
         <Card padding="lg">
-          <PageHeader
-            title="Create Analysis"
-            subtitle="Analyze your resume against a job description"
-          />
 
-          <div className="space-y-4 mt-4">
-            <TextField
-              label="Job Title"
-              name="job_title"
-              value={jobTitle}
-              onChange={(e) => setJobTitle(e.target.value)}
-            />
+          <div className="space-y-6">
 
-            {/* Job Role Category */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">
-                Job Role Category
-              </label>
-              <select
-                className="w-full border rounded px-3 py-2"
+            {/* BASIC INFO */}
+            <div className="space-y-4">
+
+              <InputField
+                label="Job Title"
+                value={jobTitle}
+                onChange={setJobTitle}
+                error={errors.jobTitle}
+              />
+
+              <SelectField
+                label="Job Role Category"
                 value={jobRoleCategory}
-                onChange={(e) => setJobRoleCategory(e.target.value)}
-              >
-                <option value="">Select role</option>
-                {ROLE_OPTIONS.map((role) => (
-                  <option key={role.label} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setJobRoleCategory}
+                options={ROLE_OPTIONS}
+                error={errors.role}
+              />
+
+              {jobRoleCategory === "other" && (
+                <InputField
+                  label="Custom Role"
+                  value={jobRoleCustom}
+                  onChange={setJobRoleCustom}
+                  error={errors.customRole}
+                />
+              )}
+
             </div>
 
-            {/* Custom Role */}
-            {jobRoleCategory === "other" && (
-              <TextField
-                label="Custom Role"
-                name="job_role_custom"
-                value={jobRoleCustom}
-                onChange={(e) => setJobRoleCustom(e.target.value)}
-                placeholder="Enter custom role"
-              />
-            )}
+            {/* TEXT AREAS */}
+            <div className="space-y-4">
 
-            {/* Resume */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Resume</label>
-              <textarea
-                className="w-full border rounded px-3 py-2 min-h-[140px]"
+              <TextAreaField
+                label="Resume"
                 value={resume}
-                onChange={(e) => setResume(e.target.value)}
-                placeholder="Paste resume"
+                onChange={setResume}
+                error={errors.resume}
+                placeholder="Paste resume text here..."
               />
-            </div>
 
-            {/* Job Description */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">
-                Job Description
-              </label>
-              <textarea
-                className="w-full border rounded px-3 py-2 min-h-[140px]"
+              <TextAreaField
+                label="Job Description"
                 value={jobDescription}
-                onChange={(e) =>
-                  setJobDescription(e.target.value)
-                }
-                placeholder="Paste job description"
+                onChange={setJobDescription}
+                error={errors.jd}
+                placeholder="Paste job description..."
               />
+
             </div>
 
-            {error && (
-              <div className="text-red-600 text-sm">{error}</div>
-            )}
+            {/* ACTIONS */}
+            <div className="flex gap-3 pt-2">
 
-            <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? "Processing..." : "Analyze"}
-            </Button>
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex-1 rounded-lg bg-primary text-white py-2.5 text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+              >
+                {loading ? "Analyzing..." : "Run Analysis"}
+              </button>
+
+              <button
+                onClick={resetForm}
+                className="px-4 py-2.5 rounded-lg border text-sm hover:bg-gray-100 transition"
+              >
+                Reset
+              </button>
+
+            </div>
+
           </div>
+
         </Card>
       </div>
+    </div>
+  );
+}
+
+/* ---------------- INPUT ---------------- */
+
+function InputField({ label, value, onChange, error }: any) {
+  return (
+    <div className="space-y-1">
+      <label className="text-sm font-medium">{label}</label>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg border px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary"
+      />
+      {error && <div className="text-red-600 text-xs">{error}</div>}
+    </div>
+  );
+}
+
+/* ---------------- SELECT ---------------- */
+
+function SelectField({ label, value, onChange, options, error }: any) {
+  return (
+    <div className="space-y-1">
+      <label className="text-sm font-medium">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg border px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary"
+      >
+        <option value="">Select role</option>
+        {options.map((opt: any) => (
+          <option key={opt.label} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      {error && <div className="text-red-600 text-xs">{error}</div>}
+    </div>
+  );
+}
+
+/* ---------------- TEXTAREA ---------------- */
+
+function TextAreaField({ label, value, onChange, error, placeholder }: any) {
+  return (
+    <div className="space-y-1">
+      <label className="text-sm font-medium">{label}</label>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-lg border px-3 py-2.5 text-sm min-h-[140px] focus:ring-2 focus:ring-primary"
+      />
+      {error && <div className="text-red-600 text-xs">{error}</div>}
     </div>
   );
 }

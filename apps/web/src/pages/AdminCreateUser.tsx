@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Button, Card, PageHeader, TextField } from "@resume-ai/ui";
-
+import { Card, PageHeader } from "@resume-ai/ui";
 import { apiClient } from "@/lib/apiClient";
+import toast from "react-hot-toast";
 
 const ROLE_OPTIONS = ["USER", "ADMIN", "SUPER_ADMIN"];
 
@@ -12,23 +12,36 @@ export default function AdminCreateUser() {
   const [role, setRole] = useState("USER");
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<any>({});
 
   function validate() {
-    if (!name || !email || !password) {
-      setError("All fields are required");
-      return false;
+    const newErrors: any = {};
+
+    if (!name) newErrors.name = "Required";
+    if (!email) newErrors.email = "Required";
+    if (!password) newErrors.password = "Required";
+
+    if (password && password.length < 8) {
+      newErrors.password = "Minimum 8 characters required";
     }
-    return true;
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  }
+
+  function resetForm() {
+    setName("");
+    setEmail("");
+    setPassword("");
+    setRole("USER");
+    setErrors({});
   }
 
   async function handleCreate() {
     if (!validate()) return;
 
     setLoading(true);
-    setError(null);
-    setMessage(null);
 
     try {
       await apiClient.post("/admin/users", {
@@ -38,80 +51,133 @@ export default function AdminCreateUser() {
         role,
       });
 
-      setMessage("User created successfully");
+      toast.success("User created successfully");
 
-      setName("");
-      setEmail("");
-      setPassword("");
-      setRole("USER");
+      resetForm();
     } catch (err) {
-      if (err instanceof Error) setError(err.message);
-      else setError("Failed to create user");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create user"
+      );
     } finally {
       setLoading(false);
     }
   }
 
+  const isFormValid =
+    name && email && password && password.length >= 8;
+
   return (
-    <div className="p-6 flex justify-center">
+    <div className="p-4 tablet:p-6 flex justify-center">
       <div className="w-full max-w-xl space-y-6">
+
         <PageHeader
           title="Create User"
-          subtitle="Admin can create new users"
+          subtitle="Add a new user and assign role"
         />
 
         <Card padding="lg">
-          <div className="space-y-4">
-            <TextField
-              label="Name"
-              name="name"
+
+          <div className="space-y-6">
+
+            {/* NAME */}
+            <InputField
+              label="Full Name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter name"
+              onChange={setName}
+              error={errors.name}
             />
 
-            <TextField
+            {/* EMAIL */}
+            <InputField
               label="Email"
-              name="email"
-              type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email"
+              onChange={setEmail}
+              type="email"
+              error={errors.email}
             />
 
-            <TextField
+            {/* PASSWORD */}
+            <InputField
               label="Password"
-              name="password"
-              type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
+              onChange={setPassword}
+              type="password"
+              error={errors.password}
             />
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Role</label>
-              <select
-                className="w-full border rounded px-3 py-2"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
+            {/* ROLE */}
+            <SelectField
+              label="Role"
+              value={role}
+              onChange={setRole}
+              options={ROLE_OPTIONS}
+            />
+
+            {/* ACTIONS */}
+            <div className="flex gap-3 pt-2">
+
+              <button
+                onClick={handleCreate}
+                disabled={loading || !isFormValid}
+                className="flex-1 rounded-lg bg-primary text-white py-2.5 text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
               >
-                {ROLE_OPTIONS.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
+                {loading ? "Creating..." : "Create User"}
+              </button>
+
+              <button
+                onClick={resetForm}
+                className="px-4 py-2.5 rounded-lg border text-sm hover:bg-gray-100 transition"
+              >
+                Reset
+              </button>
+
             </div>
 
-            {error && <div className="text-red-600 text-sm">{error}</div>}
-            {message && <div className="text-green-600 text-sm">{message}</div>}
-
-            <Button onClick={handleCreate} disabled={loading}>
-              {loading ? "Creating..." : "Create User"}
-            </Button>
           </div>
+
         </Card>
       </div>
+    </div>
+  );
+}
+
+/* ---------------- INPUT ---------------- */
+
+function InputField({ label, value, onChange, error, type = "text" }: any) {
+  return (
+    <div className="space-y-1">
+      <label className="text-sm font-medium">{label}</label>
+
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg border px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary"
+      />
+
+      {error && <div className="text-red-600 text-xs">{error}</div>}
+    </div>
+  );
+}
+
+/* ---------------- SELECT ---------------- */
+
+function SelectField({ label, value, onChange, options }: any) {
+  return (
+    <div className="space-y-1">
+      <label className="text-sm font-medium">{label}</label>
+
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg border px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary"
+      >
+        {options.map((opt: string) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
