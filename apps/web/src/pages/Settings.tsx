@@ -7,6 +7,8 @@ import {
   type AppSettings,
 } from "@/lib/settings";
 import { clearToken } from "@/lib/authUtil";
+import { Card, PageHeader, Button } from "@resume-ai/ui";
+import toast from "react-hot-toast";
 
 export default function Settings() {
   const initial = useMemo(() => loadSettings(), []);
@@ -24,13 +26,14 @@ export default function Settings() {
     setSettings(defaultSettings);
     saveSettings(defaultSettings);
     setSavedAt(new Date().toLocaleTimeString());
+    toast.success("Settings reset");
   }
 
   function clearAll() {
     clearSettings();
     setSettings(defaultSettings);
     setSavedAt(null);
-    alert("Settings cleared.");
+    toast.success("Settings cleared");
   }
 
   function handleLogout() {
@@ -39,147 +42,180 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-8 p-6">
-      <div>
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-gray-600 mt-1">
-          Preferences are stored locally on this device.
-        </p>
-        {savedAt && (
-          <p className="text-sm text-gray-500 mt-2">
-            Saved at {savedAt}
-          </p>
-        )}
-      </div>
+    <div className="p-4 tablet:p-6 space-y-6">
 
-      {/* Profile */}
-      <section className="border rounded-lg p-5 space-y-4">
-        <h2 className="text-lg font-semibold">Profile</h2>
+      <PageHeader
+        title="Settings"
+        subtitle="Manage your preferences and local settings"
+      />
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="space-y-1">
-            <div className="text-sm text-gray-600">
-              Display name
-            </div>
-            <input
-              className="w-full border rounded px-3 py-2"
-              value={settings.displayName}
-              onChange={(e) =>
-                update({ displayName: e.target.value })
-              }
-            />
-          </label>
-
-          <label className="space-y-1">
-            <div className="text-sm text-gray-600">Email</div>
-            <input
-              className="w-full border rounded px-3 py-2"
-              value={settings.email}
-              onChange={(e) =>
-                update({ email: e.target.value })
-              }
-            />
-          </label>
+      {savedAt && (
+        <div className="text-xs text-text-secondary">
+          Last saved at {savedAt}
         </div>
-      </section>
+      )}
 
-      {/* Preferences */}
-      <section className="border rounded-lg p-5 space-y-4">
-        <h2 className="text-lg font-semibold">Preferences</h2>
+      {/* PROFILE */}
+      <Card padding="lg">
+        <div className="space-y-5">
+          <div className="font-semibold text-base">Profile</div>
 
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <div className="font-medium">Demo mode</div>
-            <div className="text-sm text-gray-600">
-              Uses mock data instead of backend APIs.
-            </div>
+          <div className="grid grid-cols-1 tablet:grid-cols-2 gap-4">
+
+            <InputField
+              label="Display name"
+              value={settings.displayName}
+              onChange={(v) => update({ displayName: v })}
+            />
+
+            <InputField
+              label="Email"
+              value={settings.email}
+              onChange={(v) => update({ email: v })}
+            />
+
+          </div>
+        </div>
+      </Card>
+
+      {/* PREFERENCES */}
+      <Card padding="lg">
+        <div className="space-y-5">
+
+          <div className="font-semibold text-base">
+            Preferences
           </div>
 
-          <button
-            className={`border rounded px-4 py-2 ${
-              settings.demoMode ? "bg-gray-900 text-white" : ""
-            }`}
-            onClick={() =>
-              update({ demoMode: !settings.demoMode })
-            }
-          >
-            {settings.demoMode ? "On" : "Off"}
-          </button>
-        </div>
+          {/* DEMO MODE */}
+          <div className="flex items-center justify-between gap-4 flex-wrap">
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="space-y-1">
-            <div className="text-sm text-gray-600">
-              Default results view
+            <div>
+              <div className="font-medium text-sm">
+                Demo mode
+              </div>
+              <div className="text-xs text-text-secondary">
+                Use sample data instead of backend APIs
+              </div>
             </div>
-            <select
-              className="w-full border rounded px-3 py-2"
-              value={settings.defaultView}
-              onChange={(e) =>
-                update({
-                  defaultView:
-                    e.target.value as AppSettings["defaultView"],
-                })
+
+            <button
+              onClick={() =>
+                update({ demoMode: !settings.demoMode })
               }
+              className={`px-4 py-2 rounded-full text-sm transition ${
+                settings.demoMode
+                  ? "bg-primary text-white"
+                  : "bg-muted"
+              }`}
             >
-              <option value="table">Table</option>
-              <option value="cards">Cards</option>
-            </select>
-          </label>
+              {settings.demoMode ? "On" : "Off"}
+            </button>
 
-          <label className="space-y-1">
-            <div className="text-sm text-gray-600">
-              Minimum score:{" "}
-              <span className="font-semibold">
-                {settings.minScore}
-              </span>
+          </div>
+
+          {/* VIEW + SLIDER */}
+          <div className="grid grid-cols-1 tablet:grid-cols-2 gap-4">
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">
+                Default results view
+              </label>
+
+              <select
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+                value={settings.defaultView}
+                onChange={(e) =>
+                  update({
+                    defaultView:
+                      e.target.value as AppSettings["defaultView"],
+                  })
+                }
+              >
+                <option value="table">Table</option>
+                <option value="cards">Cards</option>
+              </select>
             </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={settings.minScore}
-              onChange={(e) =>
-                update({ minScore: Number(e.target.value) })
-              }
-              className="w-full"
-            />
-          </label>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">
+                Minimum score:{" "}
+                <span className="font-semibold">
+                  {settings.minScore}
+                </span>
+              </label>
+
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={settings.minScore}
+                onChange={(e) =>
+                  update({ minScore: Number(e.target.value) })
+                }
+                className="w-full"
+              />
+            </div>
+
+          </div>
+
         </div>
-      </section>
+      </Card>
 
-      {/* Actions */}
-      <section className="border rounded-lg p-5 space-y-4">
-        <h2 className="text-lg font-semibold">Actions</h2>
+      {/* ACTIONS */}
+      <Card padding="lg">
+        <div className="space-y-5">
 
-        <div className="flex flex-wrap gap-3">
-          <button
-            className="border rounded px-4 py-2"
-            onClick={reset}
-          >
-            Reset to defaults
-          </button>
+          <div className="font-semibold text-base">
+            Actions
+          </div>
 
-          <button
-            className="border rounded px-4 py-2"
-            onClick={clearAll}
-          >
-            Clear settings
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
 
-          <button
-            className="border rounded px-4 py-2 bg-red-500 text-white"
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
+            <Button variant="secondary" onClick={reset}>
+              Reset to defaults
+            </Button>
+
+            <Button variant="ghost" onClick={clearAll}>
+              Clear settings
+            </Button>
+
+            <Button
+              variant="danger"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+
+          </div>
+
+          <div className="text-xs text-text-secondary">
+            These settings are stored locally on your device.
+          </div>
+
         </div>
+      </Card>
 
-        <p className="text-sm text-gray-600">
-          Later, when backend is added, these can be saved per user
-          account.
-        </p>
-      </section>
+    </div>
+  );
+}
+
+function InputField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <label className="text-sm font-medium">{label}</label>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
+      />
     </div>
   );
 }

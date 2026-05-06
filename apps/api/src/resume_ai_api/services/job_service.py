@@ -210,9 +210,13 @@ class JobService:
         self._job_repository.save(job)
 
     def _get_match_band(self, score: int) -> str:
-        if score >= 80:
+        if score >= 85:
             return "Excellent"
-        elif score >= 50:
+        elif score >= 75:
+            return "Very Good"
+        elif score >= 65:
             return "Good"
+        elif score >= 50:
+            return "Average"
         else:
             return "Poor"
