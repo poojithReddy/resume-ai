@@ -1,5 +1,7 @@
 import uuid
+from datetime import datetime
 
+from resume_ai_api.core.constants import USER_ROLE
 from resume_ai_api.core.errors import AppError
 from resume_ai_api.repositories.job_repository import JobRepository
 from resume_ai_api.schemas.jobs import (
@@ -12,16 +14,29 @@ from resume_ai_api.services.ai_service import AIService
 
 MAX_FREE_JOBS = 3
 
+
 class JobService:
     def __init__(self, job_repository: JobRepository):
         self._job_repository = job_repository
         self._ai_service = AIService()
 
     def create_job(
-        self, payload: JobCreateRequest, user_id: str | None = None
+        self,
+        payload: JobCreateRequest,
+        user_id: str | None = None,
+        role: str | None = None,
     ) -> str:
+        if role != USER_ROLE:
+            raise AppError(
+                "Only users can create jobs",
+                code="FORBIDDEN",
+                status_code=403,
+            )
+
         if user_id is not None:
-            existing_jobs = self._job_repository.list_jobs(user_id=user_id)
+            existing_jobs = self._job_repository.list_jobs(
+                target_user_id=user_id
+            )
 
             if len(existing_jobs) >= MAX_FREE_JOBS:
                 raise AppError(
@@ -40,7 +55,8 @@ class JobService:
             status="pending",
             resume_text=payload.resume_text,
             job_description_text=payload.job_description_text,
-            user_id=user_id,
+            target_user_id=user_id,
+            actor_id=user_id,
         )
 
         self._generate_and_store_scorecard(job)
@@ -48,7 +64,10 @@ class JobService:
         return job_id
 
     def get_job(
-        self, job_id: str, user_id: str, role: str
+        self,
+        job_id: str,
+        user_id: str,
+        role: str,
     ) -> JobDetailResponse:
         job = self._job_repository.get_job(job_id)
 
@@ -59,8 +78,7 @@ class JobService:
                 status_code=404,
             )
 
-        # RBAC check
-        if role not in ["ADMIN", "SUPER_ADMIN"] and job.user_id != user_id:
+        if role != "ADMIN" and job.target_user_id != user_id:
             raise AppError(
                 "You are not allowed to access this job.",
                 code="FORBIDDEN",
@@ -78,12 +96,9 @@ class JobService:
             score=job.score,
             match_band=job.match_band or "Unknown",
             summary=job.summary or "",
-            matched_points=job.matched_points.split(",")
-            if job.matched_points
-            else [],
-            missing_points=job.missing_points.split(",")
-            if job.missing_points
-            else [],
+            matched_points=job.matched_points.split(",") if job.matched_points else [],
+            missing_points=job.missing_points.split(",") if job.missing_points else [],
+            ai_feedback=job.ai_feedback,
         )
 
         return JobDetailResponse(
@@ -95,16 +110,28 @@ class JobService:
             resume_text=job.resume_text,
             job_description_text=job.job_description_text,
             created_at=job.created_at,
+            updated_at=job.updated_at,
+            analysis_completed_at=job.analysis_completed_at,
             scorecard=scorecard,
         )
 
-    def list_jobs(self, user_id: str, role: str):
+    def list_jobs(
+        self,
+        user_id: str,
+        role: str,
+    ):
         if role in ["ADMIN", "SUPER_ADMIN"]:
-            jobs = self._job_repository.list_jobs(user_id=None)
+            jobs = self._job_repository.list_jobs()
         else:
-            jobs = self._job_repository.list_jobs(user_id=user_id)
+            jobs = self._job_repository.list_jobs(
+                target_user_id=user_id
+            )
 
-        jobs = sorted(jobs, key=lambda j: j.created_at, reverse=True)
+        jobs = sorted(
+            jobs,
+            key=lambda j: j.created_at,
+            reverse=True,
+        )
 
         return [
             {
@@ -113,17 +140,23 @@ class JobService:
                 "job_role_category": job.job_role_category,
                 "job_role_custom": job.job_role_custom,
                 "created_at": job.created_at,
-                "status": "completed"
-                if job.score is not None
-                else "pending",
+                "updated_at": job.updated_at,
+                "analysis_completed_at": job.analysis_completed_at,
+                "status": "completed" if job.score is not None else "pending",
                 "score": job.score,
                 "match_band": job.match_band,
-                "user_name": job.user.name if job.user else None,
+                "user_name": job.target_user.name if job.target_user else None,
+                "user_email": job.target_user.email if job.target_user else None,
+                "user_status": job.target_user.is_active if job.target_user else None,
             }
             for job in jobs
         ]
 
-    def compare_jobs(self, job_id_1: str, job_id_2: str):
+    def compare_jobs(
+        self,
+        job_id_1: str,
+        job_id_2: str,
+    ):
         if job_id_1 == job_id_2:
             raise AppError(
                 "Cannot compare the same job",
@@ -141,7 +174,7 @@ class JobService:
                 status_code=404,
             )
 
-        if job1.user_id == job2.user_id:
+        if job1.target_user_id == job2.target_user_id:
             raise AppError(
                 "Cannot compare jobs from the same user",
                 code="SAME_USER_COMPARISON",
@@ -165,15 +198,14 @@ class JobService:
         def build_scorecard(job):
             return {
                 "job_id": job.job_id,
+                "user_name": job.target_user.name if job.target_user else None,
+                "user_email": job.target_user.email if job.target_user else None,
                 "score": job.score,
                 "match_band": job.match_band or "Unknown",
                 "summary": job.summary,
-                "matched_points": job.matched_points.split(",")
-                if job.matched_points
-                else [],
-                "missing_points": job.missing_points.split(",")
-                if job.missing_points
-                else [],
+                "matched_points": job.matched_points.split(",") if job.matched_points else [],
+                "missing_points": job.missing_points.split(",") if job.missing_points else [],
+                "ai_feedback": job.ai_feedback,
             }
 
         user_a = build_scorecard(job1)
@@ -205,7 +237,9 @@ class JobService:
         job.summary = scorecard.summary
         job.matched_points = ",".join(scorecard.matched_points)
         job.missing_points = ",".join(scorecard.missing_points)
+        job.ai_feedback = getattr(scorecard, "ai_feedback", None)
         job.status = "completed"
+        job.analysis_completed_at = datetime.utcnow()
 
         self._job_repository.save(job)
 

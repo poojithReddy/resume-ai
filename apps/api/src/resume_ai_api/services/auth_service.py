@@ -1,95 +1,167 @@
+from datetime import datetime
+
 from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
 
+from resume_ai_api.core.constants import (
+    ADMIN_ROLE,
+    SUPER_ADMIN_ROLE,
+    USER_ROLE,
+)
 from resume_ai_api.core.errors import AppError
 from resume_ai_api.core.security import create_access_token
-from resume_ai_api.core.constants import USER_ROLE
 from resume_ai_api.repositories.user_repository import UserRepository
 from resume_ai_api.schemas.auth import (
+    AuthResponse,
+    AuthUserData,
     LoginRequest,
     SignupRequest,
     UpdateProfileRequest,
 )
 
 
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["pbkdf2_sha256"],
+    deprecated="auto",
+)
 
 
 class AuthService:
-    def __init__(self, user_repository: UserRepository):
+    def __init__(
+        self,
+        user_repository: UserRepository,
+    ):
         self._user_repository = user_repository
 
-    def signup(self, payload: SignupRequest):
-        email = payload.email.lower()
-        existing_user = self._user_repository.get_by_email(email)
+    def signup(
+        self,
+        payload: SignupRequest,
+    ) -> AuthResponse:
+        existing_user = self._user_repository.get_by_email(
+            payload.email.lower()
+        )
 
         if existing_user:
             raise AppError(
-                "An account with this email already exists.",
-                code="USER_EXISTS",
+                "User already exists",
+                code="USER_ALREADY_EXISTS",
                 status_code=409,
             )
 
-        try:
-            password_hash = pwd_context.hash(payload.password)
+        password_hash = pwd_context.hash(
+            payload.password
+        )
 
+        try:
             user = self._user_repository.create_user(
-                name=payload.name,
-                email=email,
+                name=payload.name.strip(),
+                email=payload.email.lower(),
                 password_hash=password_hash,
                 role=USER_ROLE,
             )
 
-            token = create_access_token(user.id, user.role)
-
-            return {
-                "user_id": user.id,
-                "email": user.email,
-                "token": token,
-            }
-
         except IntegrityError:
             raise AppError(
-                "An account with this email already exists.",
-                code="USER_EXISTS",
+                "User already exists",
+                code="USER_ALREADY_EXISTS",
                 status_code=409,
             )
 
-    def login(self, payload: LoginRequest):
-        email = payload.email.lower()
-        user = self._user_repository.get_by_email(email)
+        token = create_access_token(
+            user_id=user.id,
+            role=user.role,
+        )
 
-        if not user:
-            raise AppError(
-                "Email or password is incorrect.",
-                code="INVALID_CREDENTIALS",
-                status_code=401,
-            )
+        return AuthResponse(
+            message="Signup successful",
+            data=AuthUserData(
+                user_id=user.id,
+                name=user.name,
+                email=user.email,
+                role=user.role,
+                is_active=user.is_active,
+                token=token,
+            ),
+        )
 
-        if not user.is_active:
+    def login_user(
+        self,
+        payload: LoginRequest,
+    ) -> dict:
+        user = self._validate_login_credentials(
+            payload
+        )
+
+        if user.role != USER_ROLE:
             raise AppError(
-                "Your account is inactive. Contact admin.",
-                code="USER_INACTIVE",
+                "Invalid user login",
+                code="INVALID_USER_LOGIN",
                 status_code=403,
             )
 
-        if not pwd_context.verify(payload.password, str(user.password_hash)):
-            raise AppError(
-                "Email or password is incorrect.",
-                code="INVALID_CREDENTIALS",
-                status_code=401,
-            )
+        self._update_last_login(user)
 
-        token = create_access_token(user.id, user.role)
+        token = create_access_token(
+            user_id=user.id,
+            role=user.role,
+        )
 
         return {
-            "user_id": user.id,
-            "email": user.email,
-            "token": token,
+            "message": "Login successful",
+            "data": {
+                "user_id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "role": user.role,
+                "is_active": user.is_active,
+                "token": token,
+            },
         }
 
-    def update_profile(self, user_id: str, payload: UpdateProfileRequest):
-        user = self._user_repository.get_by_id(user_id)
+    def login_admin(
+        self,
+        payload: LoginRequest,
+    ) -> dict:
+        user = self._validate_login_credentials(
+            payload
+        )
+
+        if user.role not in [
+            ADMIN_ROLE,
+            SUPER_ADMIN_ROLE,
+        ]:
+            raise AppError(
+                "Invalid admin login",
+                code="INVALID_ADMIN_LOGIN",
+                status_code=403,
+            )
+
+        self._update_last_login(user)
+
+        token = create_access_token(
+            user_id=user.id,
+            role=user.role,
+        )
+
+        return {
+            "message": "Admin login successful",
+            "data": {
+                "user_id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "role": user.role,
+                "is_active": user.is_active,
+                "token": token,
+            },
+        }
+
+    def get_profile(
+        self,
+        user_id: str,
+    ) -> dict:
+        user = self._user_repository.get_by_id(
+            user_id
+        )
 
         if not user:
             raise AppError(
@@ -98,17 +170,37 @@ class AuthService:
                 status_code=404,
             )
 
-        if payload.name:
-            user.name = payload.name
+        return {
+            "user_id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "is_active": user.is_active,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at,
+            "last_login_at": user.last_login_at,
+        }
+
+    def update_profile(
+        self,
+        user_id: str,
+        payload: UpdateProfileRequest,
+    ):
+        user = self._user_repository.get_by_id(
+            user_id
+        )
+
+        if not user:
+            raise AppError(
+                "User not found",
+                code="USER_NOT_FOUND",
+                status_code=404,
+            )
+
+        if payload.name is not None:
+            user.name = payload.name.strip()
 
         if payload.password:
-            if not payload.confirm_password:
-                raise AppError(
-                    "Confirm password is required",
-                    code="CONFIRM_PASSWORD_REQUIRED",
-                    status_code=400,
-                )
-
             if payload.password != payload.confirm_password:
                 raise AppError(
                     "Passwords do not match",
@@ -116,10 +208,63 @@ class AuthService:
                     status_code=400,
                 )
 
-            user.password_hash = pwd_context.hash(payload.password)
+            user.password_hash = pwd_context.hash(
+                payload.password
+            )
 
         self._user_repository.save(user)
 
         return {
-            "message": "Profile updated successfully"
+            "message": "Profile updated successfully",
+            "data": {
+                "user_id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "role": user.role,
+                "is_active": user.is_active,
+            },
         }
+
+    def _validate_login_credentials(
+        self,
+        payload: LoginRequest,
+    ):
+        user = self._user_repository.get_by_email(
+            payload.email.lower()
+        )
+
+        if not user:
+            raise AppError(
+                "Invalid email or password",
+                code="INVALID_CREDENTIALS",
+                status_code=401,
+            )
+
+        if not user.is_active:
+            raise AppError(
+                "Your account has been deactivated. Please contact admin.",
+                code="ACCOUNT_DEACTIVATED",
+                status_code=403,
+            )
+
+        valid_password = pwd_context.verify(
+            payload.password,
+            user.password_hash,
+        )
+
+        if not valid_password:
+            raise AppError(
+                "Invalid email or password",
+                code="INVALID_CREDENTIALS",
+                status_code=401,
+            )
+
+        return user
+
+    def _update_last_login(
+        self,
+        user,
+    ) -> None:
+        user.last_login_at = datetime.utcnow()
+
+        self._user_repository.save(user)
