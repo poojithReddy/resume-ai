@@ -9,6 +9,7 @@ src/resume_ai_api.egg-info/requires.txt
 src/resume_ai_api.egg-info/top_level.txt
 src/resume_ai_api/api/v1/router.py
 src/resume_ai_api/api/v1/routes/admin.py
+src/resume_ai_api/api/v1/routes/admin_jobs.py
 src/resume_ai_api/api/v1/routes/auth.py
 src/resume_ai_api/api/v1/routes/compare.py
 src/resume_ai_api/api/v1/routes/health.py
@@ -27,8 +28,12 @@ src/resume_ai_api/dependencies/services.py
 src/resume_ai_api/repositories/job_repository.py
 src/resume_ai_api/repositories/user_repository.py
 src/resume_ai_api/schemas/admin.py
+src/resume_ai_api/schemas/admin_jobs.py
 src/resume_ai_api/schemas/auth.py
+src/resume_ai_api/schemas/common.py
 src/resume_ai_api/schemas/jobs.py
+src/resume_ai_api/services/admin_job_service.py
+src/resume_ai_api/services/admin_service.py
 src/resume_ai_api/services/ai_service.py
 src/resume_ai_api/services/auth_service.py
 src/resume_ai_api/services/job_service.py

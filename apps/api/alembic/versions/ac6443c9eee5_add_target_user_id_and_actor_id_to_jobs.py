@@ -1,8 +1,8 @@
-"""add job role fields
+"""add target_user_id and actor_id to jobs
 
-Revision ID: 0e097682f8b0
+Revision ID: ac6443c9eee5
 Revises: 
-Create Date: 2026-05-02 22:37:31.582757
+Create Date: 2026-05-06 23:31:59.886544
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '0e097682f8b0'
+revision: str = 'ac6443c9eee5'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -29,6 +29,8 @@ def upgrade() -> None:
     sa.Column('role', sa.String(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('last_login_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
@@ -38,16 +40,21 @@ def upgrade() -> None:
     sa.Column('job_role_category', sa.String(), nullable=False),
     sa.Column('job_role_custom', sa.String(), nullable=True),
     sa.Column('status', sa.String(), nullable=False),
-    sa.Column('resume_text', sa.String(), nullable=False),
-    sa.Column('job_description_text', sa.String(), nullable=False),
+    sa.Column('resume_text', sa.Text(), nullable=False),
+    sa.Column('job_description_text', sa.Text(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('user_id', sa.String(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('analysis_completed_at', sa.DateTime(), nullable=True),
+    sa.Column('target_user_id', sa.String(), nullable=True),
+    sa.Column('actor_id', sa.String(), nullable=True),
     sa.Column('score', sa.Integer(), nullable=True),
     sa.Column('match_band', sa.String(), nullable=True),
     sa.Column('summary', sa.Text(), nullable=True),
     sa.Column('matched_points', sa.Text(), nullable=True),
     sa.Column('missing_points', sa.Text(), nullable=True),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.Column('ai_feedback', sa.Text(), nullable=True),
+    sa.ForeignKeyConstraint(['actor_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['target_user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('job_id')
     )
     # ### end Alembic commands ###

@@ -8,22 +8,53 @@ class UserRepository:
     def __init__(self, db: Session):
         self._db = db
 
-    def get_by_email(self, email: str) -> User | None:
+    def get_by_email(
+        self,
+        email: str,
+    ) -> User | None:
         return (
             self._db.query(User)
             .filter(User.email == email)
             .first()
         )
 
-    def get_by_id(self, user_id: str) -> User | None:
+    def get_by_id(
+        self,
+        user_id: str,
+    ) -> User | None:
         return (
             self._db.query(User)
             .filter(User.id == user_id)
             .first()
         )
 
-    def list_users(self):
+    def list_users(
+        self,
+    ):
         return self._db.query(User).all()
+
+    def get_total_users_count(
+        self,
+    ) -> int:
+        return self._db.query(User).count()
+
+    def get_active_users_count(
+        self,
+    ) -> int:
+        return (
+            self._db.query(User)
+            .filter(User.is_active.is_(True))
+            .count()
+        )
+
+    def get_inactive_users_count(
+        self,
+    ) -> int:
+        return (
+            self._db.query(User)
+            .filter(User.is_active.is_(False))
+            .count()
+        )
 
     def create_user(
         self,
@@ -43,16 +74,22 @@ class UserRepository:
             self._db.add(user)
             self._db.commit()
             self._db.refresh(user)
+
             return user
+
         except IntegrityError:
             self._db.rollback()
             raise
 
-    def save(self, user: User) -> None:
+    def save(
+        self,
+        user: User,
+    ) -> None:
         try:
             self._db.add(user)
             self._db.commit()
             self._db.refresh(user)
+
         except Exception:
             self._db.rollback()
             raise

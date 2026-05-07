@@ -1,5 +1,5 @@
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from sqlalchemy.orm import joinedload
 
 from resume_ai_api.db.models import Job
 
@@ -17,7 +17,8 @@ class JobRepository:
         status: str,
         resume_text: str,
         job_description_text: str,
-        user_id: str | None = None,
+        target_user_id: str | None = None,
+        actor_id: str | None = None,
     ) -> Job:
         job = Job(
             job_id=job_id,
@@ -27,7 +28,8 @@ class JobRepository:
             status=status,
             resume_text=resume_text,
             job_description_text=job_description_text,
-            user_id=user_id,
+            target_user_id=target_user_id,
+            actor_id=actor_id,
         )
 
         self._db.add(job)
@@ -43,21 +45,48 @@ class JobRepository:
             .first()
         )
 
-    def list_jobs(self, user_id: str | None = None):
-        query = self._db.query(Job).options(joinedload(Job.user))
+    def list_jobs(self, target_user_id: str | None = None):
+        query = self._db.query(Job)
 
-        if user_id is not None:
-            query = query.filter(Job.user_id == user_id)
+        if target_user_id is not None:
+            query = query.filter(Job.target_user_id == target_user_id)
 
         return query.order_by(Job.created_at.desc()).all()
 
-    def list_by_role(self, job_role_category: str):
+    def list_by_role(self, role: str):
         return (
             self._db.query(Job)
-            .filter(Job.job_role_category == job_role_category)
+            .filter(
+                or_(
+                    Job.job_role_category == role,
+                    Job.job_role_custom == role,
+                )
+            )
             .order_by(Job.created_at.desc())
             .all()
         )
+
+    def get_available_roles(self):
+        jobs = self._db.query(Job).all()
+
+        roles = set()
+
+        for job in jobs:
+            if job.job_role_category == "other" and job.job_role_custom:
+                roles.add(job.job_role_custom)
+            else:
+                roles.add(job.job_role_category)
+
+        return sorted(list(roles))
+
+    def get_total_jobs_count(self) -> int:
+        return self._db.query(Job).count()
+
+    def get_completed_jobs_count(self) -> int:
+        return self._db.query(Job).filter(Job.score.isnot(None)).count()
+
+    def get_pending_jobs_count(self) -> int:
+        return self._db.query(Job).filter(Job.score.is_(None)).count()
 
     def get_jobs_by_ids(self, job_ids: list[str]):
         return (

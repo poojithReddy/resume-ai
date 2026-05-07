@@ -1,14 +1,15 @@
-from datetime import datetime
-
 from pydantic import BaseModel, field_validator
+
 from resume_ai_api.core.constants import ALLOWED_JOB_ROLE_CATEGORIES
 
-class JobCreateRequest(BaseModel):
+
+class AdminJobCreateRequest(BaseModel):
+    target_user_id: str
     job_title: str
     job_role_category: str
     job_role_custom: str | None = None
-    job_description_text: str
     resume_text: str
+    job_description_text: str
 
     @field_validator("job_role_category")
     @classmethod
@@ -32,33 +33,3 @@ class JobCreateRequest(BaseModel):
             return None
 
         return cleaned
-
-
-class JobCreateResponse(BaseModel):
-    job_id: str
-
-
-class Scorecard(BaseModel):
-    score: int
-    match_band: str
-    summary: str
-    matched_points: list[str]
-    missing_points: list[str]
-    ai_feedback: str | None = None
-
-
-class JobDetailResponse(BaseModel):
-    job_id: str
-    job_title: str
-    job_role_category: str
-    job_role_custom: str | None
-    status: str
-
-    resume_text: str
-    job_description_text: str
-
-    created_at: datetime
-    updated_at: datetime
-    analysis_completed_at: datetime | None
-
-    scorecard: Scorecard
